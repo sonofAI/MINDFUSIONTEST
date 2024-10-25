@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test FastAPI</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <h2>Register</h2>
+    <form id="registerForm">
+        <input type="text" id="reg_username" placeholder="Username" required>
+        <input type="text" id="reg_email" placeholder="Email" required>
+        <input type="password" id="reg_password" placeholder="Password" required>
+        <button type="submit">Register</button>
+    </form>
+
+    <h2>Login</h2>
+    <form id="loginForm">
+        <input type="text" id="login_username" placeholder="Username" required>
+        <input type="password" id="login_password" placeholder="Password" required>
+        <button type="submit">Login</button>
+    </form>
+
+    <h2>Send Message</h2>
+    <form id="messageForm">
+        <input type="text" id="receiver" placeholder="Receiver's username" required>
+        <input type="text" id="message" placeholder="Message" required>
+        <button type="submit">Send Message</button>
+    </form>
+
+    <script>
+
+        // Register user
+$('#registerForm').submit(function (e) {
+    e.preventDefault();
+    const data = {
+        username: $('#reg_username').val(),
+        email: $('#reg_email').val(),
+        password: $('#reg_password').val(),
+    };
+
+    console.log("Registering user with data:", data); // Выводим данные в консоль
+
+    $.ajax({
+        url: 'http://127.0.0.1:8000/register',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        success: function (response) {
+            alert('User registered successfully');
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+});
+
+$('#loginForm').submit(function (e) {
+    e.preventDefault();
+    const data = {
+        username: $('#login_username').val(),
+        password: $('#login_password').val(),
+    };
+
+    console.log("Logging in with data:", data); // Выводим данные в консоль
+
+    $.ajax({
+        url: 'http://127.0.0.1:8000/login',
+        method: 'POST',
+        contentType: 'application/x-www-form-urlencoded',
+        data: data,
+        success: function (response) {
+            alert('Login successful');
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseText);
+        }
+    });
+});
+
+let socket;
+
+// Function to connect to WebSocket
+function connectWebSocket(senderId, receiverId) {
+    const url = `ws://127.0.0.1:8000/ws/${senderId}/${receiverId}`;
+    socket = new WebSocket(url);
+
+    socket.onopen = function(event) {
+        console.log('WebSocket is open now.');
+    };
+
+    socket.onmessage = function(event) {
+        const message = event.data;
+        alert('New message: ' + message); // or append to a message list
+    };
+
+    socket.onclose = function(event) {
+        console.log('WebSocket is closed now.');
+    };
+
+    socket.onerror = function(error) {
+        console.error('WebSocket error:', error);
+    };
+}
+
+// Call this function to initiate the WebSocket connection
+// Replace 'b' and 'a' with the actual sender and receiver IDs or usernames
+connectWebSocket('b', 'a');
+
+// Send message on form submission
+$('#sendMessageForm').submit(function (e) {
+    e.preventDefault();
+    const messageContent = $('#message_content').val();
+    socket.send(messageContent); // Send message over WebSocket
+});
+
+    </script>
+</body>
+</html>
